@@ -2,6 +2,7 @@
 
 array<double,2> lv1::pt(string path,Data<double>& D,bool out)
 {
+	D.clean_nans();
 	valarray<double> ps = D.col("T");
 	valarray<double> ex = D.col("#epsilon_{x}");
 	valarray<double> ey = D.col("#epsilon_{y}");

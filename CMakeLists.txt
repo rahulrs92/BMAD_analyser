@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 project(bmad_analyser)
 
-find_package(ROOT REQUIRED COMPONENTS Graf Gpad Hist)
+find_package(ROOT REQUIRED COMPONENTS Graf Hist)
 include(${ROOT_USE_FILE})
 
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)

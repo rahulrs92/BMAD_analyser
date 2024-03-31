@@ -12,24 +12,50 @@
 using namespace std;
 int main(int argc, char **argv)
 {
-	string path = "/home/Rahul/JEDI/PTEDM/1.0/source_prototype2/build/data/eS";
-	analyser az(path);
+	int NS = 343; //1000; //
+	string path = "/run/media/Rahul/Hiruzen/Rahul's HDD/JEDI/prototype_singles/Spin Model Simulations/Qx1.855Qy1.023/1";
+	//string path = "/home/Rahul/JEDI/PTEDM/1.0/source_prototype2/build/data/Qx1.855Qy1.023"; //eS"; //
+	//string path = "/home/Rahul/JEDI/PTEDM/1.0/cluster/cluster_data/eS";
+	analyser az(path,NS);
 
 	matrix<1,3> ep;
 	matrix<3,3> Xi, M;
 	matrix<3,1> a, xi, xi0;
 
-	tie(ep,a,M,xi) = az.spin_model();
+	fstream f;
+	f.open(path + "/spin_model",fstream::in);
+	bool sme_flag = 0;
+	if(f.is_open())
+	{
+		f>>az.sig0;
+		for(int i=0; i<3; i++) f>>az.a[i];
+		for(int i=0; i<3; i++) for(int j=0; j<3; j++) f>>az.V[i][j];
+		f>>az.eta0;
+		for(int i=0; i<3; i++) for(int j=0; j<3; j++) f>>az.T[i][j];
+		az.M = az.V - (az.sig0/az.eta0)*az.T;
+		f.close();
+		M = az.M;
+		a = az.a;
+		sme_flag = 1;
+	}
+	else tie(a,M,xi) = az.spin_model();
 	cout<<"a = "<<a<<endl;
 	cout<<"M = "<<M<<endl;
 
-	tie(xi0,Xi) = az.windmap();
+	f.open(path + "/matrix",fstream::in);
+	if(f.is_open())
+	{
+		for(int i=0; i<3; i++) for(int j=0; j<3; j++) f>>Xi[i][j];
+		for(int i=0; i<3; i++) f>>xi0[i];
+		az.Xi = Xi; az.xi0 = xi0;
+		f.close();
+	}
+	else tie(xi0,Xi) = az.windmap();
 	cout<<"xi0 = "<<xi0<<endl;
 	cout<<"Xi = "<<Xi<<endl;
 	auto op = (Xi^-1) * (xi - xi0);
-	cout<<"Optimized sextupole fields expected at: \n"<<op<<endl;
 
-	fstream f(path + "/op.txt",fstream::out | fstream::trunc);
+	f.open(path + "/op.txt",fstream::out | fstream::trunc);
 	f<<"k.sexf      =   "<<op[0]
 	<<"\nk.sexd      =   "<<op[1]
 	<<"\nk.sexs      =   "<<op[2]<<endl;
@@ -40,20 +66,20 @@ int main(int argc, char **argv)
 	matrix<2,1> xi_o = {-1.35123,-4.527};
 	double ts_o = -0.976576;
 
+	//Data<double> Dte = proton_RF::line(path + "/rte",64);
+	Data<double> Dtc = proton_RF::line(path + "/rtc",NS); //497); //
+
 	auto t2_o = (Xi.sub<2,2>(0,0)^-1) * (xi_o - xi0.sub<2,1>() - ts_o*Xi.sub<2,1>(0,2));
 	matrix<3,1> t_o = {t2_o[0],t2_o[1],ts_o};
+	cout<<"Optimized sextupole fields expected at: \n"<<op<<endl;
 	cout<<"Calculated optimized optical settings: \n"<<xi0 + Xi*op<<endl;
-
 	cout<<"Measured optimized sextupole fields: \n"<<t_o<<endl;
-
 	cout<<"Measured optimized optical settings: \n"<<xi0 + Xi*t_o<<endl;
 
-
-
-	Data<double> Dte = proton_RF::line(path + "/rte",64);
-	Data<double> Dtc = proton_RF::line(path + "/rtc",343);
 	TApplication app("app", &argc, argv);
-	az.SM_RF_test2(Dtc,Dte);
+	//az.sampler();//windmap();//
+	//if(sme_flag) az.spin_model_errors();
+	az.SM_RF_test2(Dtc);
 	TRootCanvas *rc = (TRootCanvas *)gPad->GetCanvasImp();
 	rc->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
 	app.Run();
