@@ -18,6 +18,7 @@ add_executable(bmad_analyser ${sources} ${headers} ${lv1} ${lv2} ${analyser} ${a
 install(TARGETS bmad_analyser RUNTIME DESTINATION bin)
 target_link_libraries(bmad_analyser ROOT::Core ROOT::Graf ROOT::Gpad ROOT::Hist ROOT::Tree ROOT::TreePlayer)
 target_compile_features(bmad_analyser PRIVATE cxx_std_17)
+target_include_directories(bmad_analyser PRIVATE external/Headers)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
