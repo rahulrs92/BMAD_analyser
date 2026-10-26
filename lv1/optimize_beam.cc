@@ -42,9 +42,9 @@ tuple<double,matrix<3,1>,matrix<3,3>> lv2::optimize_beam(Data<double>& D,string 
 
     valarray<double> W_sct = pow(e_sct / sct, -2);
 	cout << "W_sct sum: " << W_sct.sum() << endl;
-	W_sct = W_sct / W_sct.sum() * W_sct.size();
+	// W_sct = W_sct / W_sct.sum() * W_sct.size();
     valarray<double> W_R = pow(e_R, -2);
-    W_R = W_R / W_R.sum() * W_R.size();
+    // W_R = W_R / W_R.sum() * W_R.size();
     valarray<double> W_nu = pow(e_nu, -2);
 
     auto A = sum(regs_R * W_R * regs_R.tp())^(-1);
@@ -142,11 +142,8 @@ tuple<double,matrix<3,1>,matrix<3,3>> lv2::optimize_beam(Data<double>& D,string 
     
 	m0 = B[0];
     m = {B[1], B[2], B[3]};
-    M = {
-        B[4],   B[7]/2, B[9]/2,
-        B[7]/2, B[5],   B[8]/2,
-        B[9]/2, B[8]/2, B[6]
-    };
+    M = B2M(B);
+    cout<<"M = "<<M<<endl;
     cout<<"M^1 = "<<(M^-1)<<endl;
     // auto t_o = - 0.5 * (M^-1) * m;
 	
@@ -159,8 +156,8 @@ tuple<double,matrix<3,1>,matrix<3,3>> lv2::optimize_beam(Data<double>& D,string 
 	double std_res_sct = sqrt((pow(res_sct, 2)).sum() / res_sct.size());
 
     cout<<"Chi^2/NDF = "<<chi<<endl;
-    cout<<"B = "<<B<<endl;
-    cout<<"var_B = "<<e_B.tp()<<endl;
+    cout<<"B +/- e_B=\n"<<cat(B,e_B)<<endl;
+    // cout<<"var_B = "<<e_B<<endl;
     
     // double std_res_sct = pow(pow(res_R,2).sum() / res_R.size(),0.5);
 	for(int i=0; i<regs_R.M(); i++) e_B[i] = sqrt(e_B[i]);

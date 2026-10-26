@@ -24,6 +24,7 @@ public:
 	matrix<2,2> Xi_2D;
 	matrix<3,1> xi03, xi03_e;
 	matrix<3,3> Xi3, Xi3_e;
+	matrix<12,12> Cov_Xi;
 
 	matrix<3, 1, std::valarray<double>> tensor_solutions;
 

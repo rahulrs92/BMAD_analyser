@@ -7,7 +7,7 @@
 int main_spin_tune_analysis(int argc, char **argv)
 {
 	lv2 az;
-	string path = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/Deuteron/sphere";
+	string path = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/sphere";
 	string rpath = "/Users/utente/JEDI/PTEDM/1.0/source_COSY_mis/build/data/Deuteron/ref_sphere";
 	string wmpath = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/Deuteron/rrnd";
 	// string sample = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/Deuteron/sample_SCT_beam";

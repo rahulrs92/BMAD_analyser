@@ -67,7 +67,14 @@ tuple<matrix<3,1>,matrix<3,3>,matrix<3,1>> lv2::spin_model_3(Data<double>& D,str
 
     auto constexpr nJ = regs_nu.M() / eps.N();
 
-	matrix<regs_nu.M(),1> V, e_V;
+	matrix<regs_nu.M(),1> V;
+	matrix<regs_nu.M(),regs_nu.M()> cov_V;
+	auto cov2err = [] (auto C)
+	{
+		matrix<C.M(),1> o1;
+		for(int i=0; i<C.M(); i++) o1[i] = sqrt(C(i,i));
+		return o1;
+	};
 	    
 	// Perform K-fold cross-validation
 	for (int k = 0; k < K; ++k)
@@ -117,8 +124,8 @@ tuple<matrix<3,1>,matrix<3,3>,matrix<3,1>> lv2::spin_model_3(Data<double>& D,str
 			// for(int i=0; i<4; i++) for(int j=0; j<4; j++) cout<<"sizes of Q: \n"<<Q[i][j].size()<<endl;
 			w_train = 1.0 / (J.tp() * Q * J);
 			// w_train = w_train / w_train.sum() * train_idx.size();
-			cout<<"Sum of weights: "<<w_train.sum()<<endl;
-			cout<<"Sizes in IRLS iteration "<<iter<<": w_train = "<<w_train.size()<<", res_nu_train = "<<res_nu_train.size()<<", Q = "<<Q[0][0].size()<<endl;
+			// cout<<"Sum of weights: "<<w_train.sum()<<endl;
+			// cout<<"Sizes in IRLS iteration "<<iter<<": w_train = "<<w_train.size()<<", res_nu_train = "<<res_nu_train.size()<<", Q = "<<Q[0][0].size()<<endl;
 			d_arr_V = (sum(A * w_train * A.tp())^-1) * sum(A * w_train * res_nu_train);
 			arr_V -= d_arr_V;
 			iter++;
@@ -128,15 +135,15 @@ tuple<matrix<3,1>,matrix<3,3>,matrix<3,1>> lv2::spin_model_3(Data<double>& D,str
 		if(iter > 100) cout<<"IRLS did not converge in 100 iterations!"<<endl;
 		else cout<<"IRLS converged in "<<iter<<" iterations."<<endl;
 
-		auto cor_arr_V = sum(A * w_train * A.tp())^-1;
-		matrix<arr_V.M(),1> e_arr_V = cor_arr_V.diag();
+		auto cov_arr_V = sum(A * w_train * A.tp())^-1;
+		// matrix<arr_V.M(),1> e_arr_V = cov_arr_V.diag();
 		
 		res_nu_train = nu_train - arr_V.tp() * regs_nu_train;
 		double chi = (pow(res_nu_train,2) * w_train).sum() / (res_nu_train.size() - arr_V.M());
 
 		cout<<"Chi^2/NDF = "<<chi<<endl;
-		cout<<"arr_V = "<<arr_V.tp()<<endl;
-		cout<<"var_arr_V = "<<e_arr_V.tp()<<endl;
+		// cout<<"arr_V +/- e_arr_V= "<<cat(arr_V,cov2err(cov_arr_V))<<endl;
+		// cout<<"var_arr_V = "<<(e_arr_V)<<endl;
 		
 	    // matrix<3,1,double> w_fold, tw_fold;
 	    // matrix<3,3,double> W_fold;
@@ -148,7 +155,7 @@ tuple<matrix<3,1>,matrix<3,3>,matrix<3,1>> lv2::spin_model_3(Data<double>& D,str
 		// cout<<"W_fold = "<<W_fold<<endl;
 		// cout<<"tw_fold = "<<tw_fold<<endl;
 		V += arr_V * (fold_size / double(N));
-		e_V += e_arr_V * pow(fold_size / double(N),2);
+		cov_V += cov_arr_V * pow(fold_size / double(N),2);
 		
 		// w = w + w_fold * (fold_size / double(N));	
 		// W3 = W3 + W_fold * (fold_size / double(N));
@@ -162,7 +169,7 @@ tuple<matrix<3,1>,matrix<3,3>,matrix<3,1>> lv2::spin_model_3(Data<double>& D,str
 		res_nu[valarray<size_t>(test_idx.data(), test_idx.size())] = nu_test - model_test;
 	}
 	double std_res_nu = pow(pow(res_nu,2).sum() / res_nu.size(),0.5);
-	for(int i=0; i<regs_nu.M(); i++) e_V[i] = pow(e_V[i],0.5);
+	// for(int i=0; i<regs_nu.M(); i++) e_V[i] = pow(e_V[i],0.5);
 	//cout<<"e_V = "<<e_V<<endl;
 	//cout<<"res_nu = "<<res_nu<<endl;
 	//cout<<"Standard deviation of residuals (nu): "<<std_res_nu<<endl;
@@ -212,27 +219,44 @@ tuple<matrix<3,1>,matrix<3,3>,matrix<3,1>> lv2::spin_model_3(Data<double>& D,str
 	}
 	//cout<<"unique elements of tx[2]: "<<unique(D.col("t_{s}"))<<endl;
 	//auto xi_opt = (W3^-1) * (-w);
-    matrix<3,1> tw; matrix<3,3> tW3; matrix<3,1> e_tw; matrix<3,3> e_tW3;
-    for(int i=0; i<3; i++) { tw[i] = V[i]; e_tw[i] = e_V[i]; }
-    for(int i=0; i<9; i++) { tW3[i/3][i%3] = V[i+3]; e_tW3[i/3][i%3] = e_V[i+3]; }
+    // matrix<3,1> tw, e_xi_opt; matrix<3,3> tW3; matrix<3,1> e_tw; matrix<3,3> e_tW3;
+	matrix<3,1> e_xi_opt;
+    for(int i=0; i<3; i++) { w[i] = V[i]; e_w[i] = sqrt(cov_V(i,i)); }
+    for(int i=0; i<9; i++) { W3[i/3][i%3] = V[i+3]; e_W3[i/3][i%3] = sqrt(cov_V(i+3,i+3)); }
 
-    auto t_o = - (tW3^-1) * tw;
-    auto e_t_o = (tW3^-1) * (e_tW3 * t_o + e_tw);
-	cout<<"t_opt = "<<cat(t_o,e_t_o)<<endl;
-    auto xi_opt = xi03 + Xi3 * t_o;
-    auto e_xi_opt = xi03_e + Xi3 * e_t_o + Xi3_e * t_o;
-	cout<<"xi_opt = "<<cat(xi_opt,e_xi_opt)<<endl;
+	auto xi_opt = - w / W3;
+	auto sig_xi_w = cov_V.sub<3,3>().divide_left(W3) / W3.tp();
+	matrix<3,12> J_sig_xi_wW;
+	J_sig_xi_wW.sub<3,3>() = (W3^-1);
+	for(int i=0; i<W3.M(); i++) J_sig_xi_wW.sub<3,3>(0,(i+1)*3) = xi_opt[i] * J_sig_xi_wW.sub<3,3>();
+	auto sig_xi_W3 = J_sig_xi_wW * cov_V * J_sig_xi_wW.tp();
+    auto cov_xi_opt = sig_xi_w + sig_xi_W3;
+	for(int i=0; i<w.M(); i++) e_xi_opt[i] = sqrt(cov_xi_opt(i,i));
+	
+    auto t_o = (xi_opt - xi03) / Xi3;
+	auto sig_t_xo = cov_xi_opt.divide_left(W3) / W3.tp();
+	matrix<3,12> J_sig_t_xX;
+	J_sig_xi_wW.sub<3,3>() = (Xi3^-1);
+	for(int i=0; i<Xi3.M(); i++) J_sig_t_xX.sub<3,3>(0,(i+1)*3) = t_o[i] * J_sig_xi_wW.sub<3,3>();
+	auto sig_t_xX = J_sig_t_xX * Cov_Xi * J_sig_t_xX.tp();
+	auto cov_t_o = sig_t_xo + sig_t_xX;
+    auto e_t_o = cov2err(cov_t_o);
+	cout<<"t_opt +/- e_t_opt =\n"<<cat(t_o,e_t_o)<<endl;
+    // auto xi_opt = xi03 + Xi3 * t_o;
+    // auto e_xi_opt = xi03_e + Xi3 * e_t_o + Xi3_e * t_o;
+	cout<<"xi_opt +/- e_xi_opt =\n"<<cat(xi_opt,e_xi_opt)<<endl;
 
-	cout<<"Spin chromaticities at optimal point: \n"<<(tw + tW3 * t_o)<<endl;
-	cout<<"Spin chromaticities at origin: \n"<<(tw)<<endl;
+	cout<<"Spin chromaticities at optimal point: \n"<<(w + W3 * xi_opt)<<endl;
+	cout<<"Spin chromaticities at origin: \n"<<w<<endl;
 
-	cout<<"w (optimized) = "<<tw<<endl;
-	cout<<"W3 (optimized) = "<<tW3<<endl;
+	// cout<<"tw (optimized) = "<<tw<<endl;
+	cout<<"W3 (optimized) =\n"<<W3<<endl;
+
 	matrix<3,3> W3_t;
-	W3_t[0][0] = tW3[0][0] * (eta0*183.473/M_PI);
-	W3_t[1][1] = tW3[1][1] * (eta0*183.473/M_PI);
-	W3_t[2][2] = - tW3[2][2] * eta0;
-	cout<<"W3 (theoretical) = "<<W3_t<<endl;
+	W3_t[0][0] = W3[0][0] * (eta0*183.473/M_PI);
+	W3_t[1][1] = W3[1][1] * (eta0*183.473/M_PI);
+	W3_t[2][2] = - W3[2][2] * eta0;
+	cout<<"sigma_0 estimations =\n"<<W3_t<<endl;
 	return make_tuple(w,W3,xi_opt);
 }
 

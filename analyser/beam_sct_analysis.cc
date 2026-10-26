@@ -9,7 +9,7 @@ int main_beam_sct_analysis(int argc, char **argv)
 	fstream f;
 
 	lv2 az;
-	string path = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/Deuteron/sct_beam_based_D";
+	string path = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/sct_beam_based";
 	
 	auto nc = bash::to_int("find " + path + " -type d -name \"c*\" | wc -l");
 	cout<<"nc = "<<nc<<endl;

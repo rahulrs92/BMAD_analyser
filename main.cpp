@@ -16,7 +16,7 @@
 
 using namespace std;
 
-string proton_RF::ID = "deuteron"; // "proton"; // 
+string proton_RF::ID = "proton"; // "deuteron"; // 
 string proton_RF::mode = "COSY"; // "COSY_mis"; // "PSR"; // "PSR-electric"; // "PSR-magnetic"; // 
 
 string acquisition::source = "PTEDM/source_COSY/sct_test";
@@ -91,17 +91,31 @@ int main_h_vs_chromaticity(int argc, char **argv);
 
 int main_w_vs_chromaticity(int argc, char **argv);
 
-int main_cluster(int argc, char **argv)
+int main_cluster_particle(int argc, char **argv)
 {
 	int c0 = 0;
 	if(argc<2) cout<<"No argument provided, assuming 0"<<endl;
 	else c0 = stod(argv[1]);
 
-	string path = "/home/shankar/PTEDM/COSY_particle/eMP/r1";
+	string path = "/home/shankar/PTEDM/COSY_particle/wp_Max/eMP_proton/r1";
 
 	lv1 l1;
 
 	l1.line(path,c0,0);
+
+	return 0;
+}
+
+int main_cluster_beam(int argc, char **argv)
+{
+	string path = "/home/shankar/PTEDM/source_COSY/wp_Max/sct_proton_test";
+
+	fstream f;
+	lv2 az;
+	
+	auto nc = bash::to_int("find " + path + " -type d -name \"c*\" | wc -l");
+	cout<<"nc = "<<nc<<endl;
+	proton_RF::beam(path,nc,0,0);
 
 	return 0;
 }
@@ -125,8 +139,8 @@ int main(int argc, char **argv)
 	// l1.multiplane(aq,path);
 	// main_travel_time_analysis(argc, argv);
 	// main_spin_tune_analysis_RFoff(argc, argv);
-	main_beam_sct_analysis(argc, argv);
-	// main_spin_tune_analysis(argc, argv);
+	// main_beam_sct_analysis(argc, argv);
+	main_spin_tune_analysis(argc, argv);
 	// main_c_vs_emittance(argc, argv);
 	// main_h_vs_chromaticity(argc, argv);
 	// main_w_vs_chromaticity(argc, argv);
