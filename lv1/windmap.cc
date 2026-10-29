@@ -9,17 +9,17 @@ tuple<matrix<3,1>,matrix<3,3>> lv1::windmap(Data<double>& D,string path,bool out
     valarray<double> td = D.col("t_{d}");
     valarray<double> ts = D.col("t_{s}");
 
-    valarray<double> x = D.col("#xi_{x}");
-    valarray<double> x_e = D.col("#Delta#xi_{x}");
-    x_e = x_e + 1e-2; // to avoid division by zero in case of zero error
+    valarray<double> x = D.col("#xi_{xm}");
+    valarray<double> x_e = D.col("#Delta#xi_{xm}");
+    x_e = x_e + 1e-10; // to avoid division by zero in case of zero error
 
-    valarray<double> y = D.col("#xi_{y}");
-    valarray<double> y_e = D.col("#Delta#xi_{y}");
-    y_e = y_e + 1e-2; // to avoid division by zero in case of zero error
+    valarray<double> y = D.col("#xi_{ym}");
+    valarray<double> y_e = D.col("#Delta#xi_{ym}");
+    y_e = y_e + 1e-10; // to avoid division by zero in case of zero error
 
     valarray<double> z = D.col("#eta_{1}");
     valarray<double> z_e = D.col("#Delta#eta_{1}");
-    z_e = z_e + 1e-2; // to avoid division by zero in case of zero error
+    z_e = z_e + 1e-10; // to avoid division by zero in case of zero error
 
     matrix<4,1,valarray<double>> regs_t = {pow(tf,0),tf,td,ts};
     matrix<3,1,valarray<double>> xi = {x,y,z}, t = {tf,td,ts};
@@ -35,8 +35,8 @@ tuple<matrix<3,1>,matrix<3,3>> lv1::windmap(Data<double>& D,string path,bool out
     w(2,2) = pow(z_e,-2); ers(2,2) = z_e; wrt(2,2) = 1.0 / z_e;
     cout<<"w = "<<pull(w,0)<<endl;
 
-    double tolerance = 1e-3;
-    auto mask = w(2,2) > tolerance;
+    double tolerance = 1e-2;
+    auto mask = w(0,0) > tolerance && w(1,1) > tolerance && w(2,2) > tolerance;
     
     fstream f(path + "/wm_matrix_info", fstream::out | fstream::trunc);
     f<<"xi0[0]"<<"\n"<<"xi0[1]"<<"\n"<<"xi0[2]"<<"\n";
@@ -125,8 +125,16 @@ tuple<matrix<3,1>,matrix<3,3>> lv1::windmap(Data<double>& D,string path,bool out
     // cout<<"Coefficient variances of Wind Map fit: "<<endl;
     // cout<<cat(xi03_e,Xi3_e)<<endl;
     
-    for(int i=0; i<xi.M(); i++) res_sm_xi[i] = valarray<double>(res_sm_xi[i][mask]);
-    cov_sm_xi = sum(res_sm_xi * res_sm_xi.tp()) / (res_sm_xi[0].size() - regs_t.M());
+    // Recalculate residuals of rigorous model
+    sm_xi = Regs_t.tp() * C;
+    res_sm_xi = xi - sm_xi;
+    // for(int i=0; i<xi.M(); i++) res_sm_xi[i] = valarray<double>(res_sm_xi[i][mask]);
+
+    // An unorthodox calculation of "weighted covariance" only for accurate estimation of graph limits
+    cov_sm_xi = sum(wrt * res_sm_xi * res_sm_xi.tp() * wrt) / (sum(w) * (1 - regs_t.M()/res_sm_xi[0].size()));
+    // cov_sm_xi = sum(wrt * res_sm_xi * res_sm_xi.tp() * wrt) / ((res_sm_xi[0].size() - regs_t.M()));
+    // cout << "Observed Spatial Covariance:\n" << cov_sm_xi << endl;
+    
 
     cout<<"Size of masked data: "<<valarray<double>(x[mask]).size()<<endl;
     cout<<"Size of masked data: "<<valarray<double>(res_sm_xi[0][mask]).size()<<endl;
@@ -168,7 +176,7 @@ tuple<matrix<3,1>,matrix<3,3>> lv1::windmap(Data<double>& D,string path,bool out
             "Distribution of residuals of Linear Model fit;#xi_{x} residual;Frequency",
             51,-5*pow(cov_sm_xi[0][0],0.5),5*pow(cov_sm_xi[0][0],0.5));
         for(int i=0; i<res_sm_xi[0].size(); i++) hx->Fill(res_sm_xi[0][i]);//,w[0][i]);
-        hx->Fit("gaus");
+        // hx->Fit("gaus");
         hx->Draw();
         ceh->SaveAs((path + "/wm_error_dist.pdf").data(),"pdf");
 
@@ -176,7 +184,7 @@ tuple<matrix<3,1>,matrix<3,3>> lv1::windmap(Data<double>& D,string path,bool out
             "Distribution of residuals of Linear Model fit;#xi_{y} residual;Frequency",
             51,-5*pow(cov_sm_xi[1][1],0.5),5*pow(cov_sm_xi[1][1],0.5));
         for(int i=0; i<res_sm_xi[1].size(); i++) hy->Fill(res_sm_xi[1][i]);//,w[1][i]);
-        hy->Fit("gaus");
+        // hy->Fit("gaus");
         hy->Draw();
         ceh->SaveAs((path + "/wm_error_dist.pdf").data(),"pdf");
 
@@ -184,7 +192,7 @@ tuple<matrix<3,1>,matrix<3,3>> lv1::windmap(Data<double>& D,string path,bool out
             "Distribution of residuals of Linear Model fit;#eta_{1} residual;Frequency",
             51,-5*pow(cov_sm_xi[2][2],0.5),5*pow(cov_sm_xi[2][2],0.5));
         for(int i=0; i<res_sm_xi[2].size(); i++) hz->Fill(res_sm_xi[2][i]);//,w[2][i]);
-        hz->Fit("gaus");
+        // hz->Fit("gaus");
         hz->Draw();
         ceh->SaveAs((path + "/wm_error_dist.pdf)").data(),"pdf");
     }

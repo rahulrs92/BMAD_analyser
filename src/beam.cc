@@ -24,8 +24,8 @@ Data<double> proton_RF::beam(string path, int N, int n0, bool pdf)
 		if(i>100) pdf = 0;
 		if(proton_RF::mode == "COSY_mis") proton::load_offset("/Users/utente/JEDI/PTEDM/1.0/source_COSY_mis/build/data/Deuteron/ref_sphere/c" + to_string(i+1));
 		//proton::load_spin_offset("/Users/utente/JEDI/PTEDM/1.0/source_COSY_mis/build/data/Deuteron/ref_sphere/c" + to_string(i+1));
-		// cout<<"YAY!! "<<path + "/c" + to_string(i+1)<<endl;
 		P = new proton_RF(path + "/c" + to_string(i+1));
+		cout<<"YAY!! "<<path + "/c" + to_string(i+1)<<endl;
 		if(proton_RF::mode == "COSY_mis") P->apply_orbit_offset();
 		//P.set_mode(mode);
 		double nu_s = P->spin_tune(pdf);

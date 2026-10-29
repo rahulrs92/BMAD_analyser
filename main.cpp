@@ -110,9 +110,6 @@ int main_cluster_beam(int argc, char **argv)
 {
 	string path = "/home/shankar/PTEDM/source_COSY/wp_Max/sct_proton_test";
 
-	fstream f;
-	lv2 az;
-	
 	auto nc = bash::to_int("find " + path + " -type d -name \"c*\" | wc -l");
 	cout<<"nc = "<<nc<<endl;
 	proton_RF::beam(path,nc,0,0);
@@ -123,16 +120,20 @@ int main_cluster_beam(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	//string path = "/Users/utente/JEDI/PTEDM/1.0/source_prototype2/build/data/sct2";
+	string path = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/sct_beam_based/test1";
 	// string path = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/wp_Marcel/Deuteron/sphere";
-	string path = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/r_tunes_Marcel_Michael";
-	string wmpath = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/rrnd";
+	// string path = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/r_tunes_Marcel_Michael";
+	// string wmpath = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/rrnd";
 	//string path = "/home/shankar/PTEDM/hybrid_particle/eMP/r1";
-	string sample = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/r_tunes_Marcel_Michael/sample_SCT_beam";
+	// string sample = "/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/r_tunes_Marcel_Michael/sample_SCT_beam";
 	
-	lv1 l1;
+	// auto nc = bash::to_int("find " + path + " -type d -name \"c*\" | wc -l");
+	// cout<<"nc = "<<nc<<endl;
+	// proton_RF::beam(path,nc,0,1);
+
+	// lv1 l1;
 	//acquisition aq;
-	lv2 az;
+	// lv2 az;
 	
 	//l1.point_RF(aq,1,164,1);
 	
@@ -183,25 +184,25 @@ int main(int argc, char **argv)
 
 	// cout<<k0<<endl;
 	
-	TApplication app("app", &argc, argv);
+	// TApplication app("app", &argc, argv);
 
 	// proton::load_offset("/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/Deuteron/rrndT");
 
-	proton_RF p("/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/wp_Marcel_Michael/Deuteron/opt1/c1");
+	// proton_RF p("/Users/utente/JEDI/PTEDM/1.0/source_COSY/build/data/wp_Marcel_Michael/Deuteron/opt1/c1");
 	// p.betatron_tune(0,1);
 	// p.betatron_tune(1,1);
 	// p.phase_slip(0);
 	// p.longitudinal(1);
-	p.spin_tune(1);
-	p.SCT(1);
+	// p.spin_tune(1);
+	// p.SCT(1);
 	
 	// az.COSY_tune_map(d,Q0,k0,path,1);
 	// az.windmap(d,wmpath,1);
 	// az.sampler_sphere(50,0.01,{0.672608520183,2.88510340087,-0.457974089331},sample,1);
 	
-	TRootCanvas *rc = (TRootCanvas *)gPad->GetCanvasImp();
-	rc->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
-	app.Run();
+	// TRootCanvas *rc = (TRootCanvas *)gPad->GetCanvasImp();
+	// rc->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
+	// app.Run();
 	
 	
 	return 0;

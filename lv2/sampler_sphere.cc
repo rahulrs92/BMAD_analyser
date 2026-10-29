@@ -24,14 +24,15 @@ matrix<3,1,valarray<double>> lv2::sampler_sphere(int N, double r, matrix<3,1> o,
     points = points + o;
 
     // Transformation to field coordinates (COSY default working point)
-    matrix<3,1> xi0 = {-4.24664,-3.93523,0.488338};
-    matrix<3,3> Xi = {2.62575,2.91311,9.09487,-1.86668,-13.2338,-5.81579,-0.11602,-1.30336,-5.03159}, E;
+    // matrix<3,1> xi0 = {-4.24664,-3.93523,0.488338};
+    // matrix<3,3> Xi = {2.62575,2.91311,9.09487,-1.86668,-13.2338,-5.81579,-0.11602,-1.30336,-5.03159}, E;
     
     // Transform to field coordinates (comment for a sphere in field space)
-    //points = (Xi^-1) * (points - xi0);          
-    valarray<double> e(3);
-    Xi.Eigens(e,E);
-    cout<<"Eigenvectors of Xi: \n"<<E<<endl;
+    // points = (Xi^-1) * (points - xi0);     
+
+    // valarray<double> e(3);
+    // Xi.Eigens(e,E);
+    // cout<<"Eigenvectors of Xi: \n"<<E<<endl;
 
     
 	if(out)
